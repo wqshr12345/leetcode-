@@ -1,0 +1,148 @@
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+
+class Part {
+	public String name;
+	public Map<Part,Integer> subparts;
+	// TODO: Finish declaration
+	
+	public Part(String n) {		
+		this.name=n;
+		subparts = new HashMap<Part,Integer>();
+		// TODO: Finish implementation
+	}
+	public void describe() {		
+		// TODO: Finish implementation
+		String subpart="";
+		if(subparts!=null && subparts.size()>=1) {
+		for (Map.Entry<Part, Integer> entry : subparts.entrySet()) {
+			subpart=subpart+entry.getValue() + " " + entry.getKey().name+"\n";
+		    }
+		}else {
+			subpart=subpart+"It has no subparts.\n";
+		}
+		System.out.println("Part "+name+" subparts are:");
+		System.out.println(subpart);
+	
+	}
+	public int count_howmany(Part p) {
+		if(this==p) {//自己有自己，就返回固定的1.
+			return 1;
+		}
+		if(subparts==null && subparts.size()<1) {//这个Part的子Part是空的,那不可能有p了，返回0.
+			return 0;
+		}
+		//下面判断subparts里面有没有p其实没有必要，但可以节省时间，减少时间复杂度。
+		if(subparts.containsKey(p)) {//自己的子Part里面有p，直接返回p的数量。这是迭代算法的关键，即什么时候退出迭代（当迭代到某一层可以找到确切的part时）
+			return  subparts.get(p);
+		}else {
+			int i = 0;
+			for (Part key : subparts.keySet()) { 
+				i=i+key.count_howmany(p)*subparts.get(key); //自己的子part里面没有p，那就继续往下迭代。
+			}	
+			return i;
+		}
+		// TODO: Finish implementation
+		
+	}
+}
+
+
+//**************** NameContainer ****************//
+
+class NameContainer  {
+	public Map<String,Part> name_map;
+	
+    public NameContainer() {
+    	name_map = new HashMap<String,Part>();
+    	// TODO: Finish implementation
+    }
+
+	public Part lookup(String name) {
+		if(name_map!=null && name_map.size()>=1) {
+		for (String key : name_map.keySet()) { 
+			if(key.equals(name)) {
+				return name_map.get(key);
+			}
+		}
+		}
+		Part a = new Part(name);
+		if(name_map==null) {
+			name_map = new HashMap<String,Part>();
+			name_map.put(name, a);
+		}else {
+			name_map.put(name, a);
+		}
+		return a;
+        // TODO: Finish implementation
+	}
+}
+
+public class extExample {
+	static public NameContainer partContainer;
+    
+    static public void load_definitions(String filename) throws FileNotFoundException {
+       Scanner infile = new Scanner(new FileInputStream(filename));
+       String part,subpart;
+       int quantity;
+       while(infile.hasNext()) {
+    	   part = infile.next();
+    	   quantity = infile.nextInt();
+    	   subpart = infile.next();
+    	   add_part(part,quantity,subpart);
+       }
+   	   infile.close();
+    }
+
+    static void whatis_query(String x) {
+    	Part xp = partContainer.lookup(x);
+    	if(xp != null)
+    	   xp.describe();
+    }
+
+    static void howmany_query(String x, String y) {
+
+    	Part xp = partContainer.lookup(x);
+    	Part yp = partContainer.lookup(y);
+    	System.out.println( y +  " has " + yp.count_howmany(xp) + " " + x);
+    }
+
+    static void process_queries(String filename) throws FileNotFoundException {
+        String query, x, y;
+        Scanner infile = new Scanner(new FileInputStream(filename));
+     
+        while(infile.hasNext()) {
+     	   query = infile.next();
+     	   x = infile.next();
+           if(query.equals("howmany")) {
+     	       y = infile.next();
+			  howmany_query(x, y);
+           }
+		   else if ( query.equals("whatis") )
+			   whatis_query(x);     	   
+        }
+    	infile.close();
+    }
+    
+    static public void add_part(String x, int q, String  y) {
+    	Part a = partContainer.lookup(x);
+    	Part b = partContainer.lookup(y);
+    	a.subparts.put(b, q);
+        // TODO: Finish implementation
+        
+    }
+
+    public static void main(String[] args) throws FileNotFoundException{
+    	partContainer = new NameContainer();
+    	load_definitions("D:/Experiment/Experiment 3/definitions.txt");
+    	process_queries("D:/Experiment/Experiment 3/queries.txt");
+    }
+}
